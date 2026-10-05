@@ -29,6 +29,7 @@ kis-core は本機能の本体にしません。KIS のサイトは、本プラ�
 
 * コンテンツタイプごとに、単体表示へ更新日を出すかを決める。
 * Archive を持つタイプでは、更新日による絞り込みとソートを足すかを決める。
+* Query Loop ブロックに、更新日ソートのコントロールを出すかを決める。サイトの初期値は出さない。すべてのタイプで出す指定と、タイプごとの除外ができる。
 * 親タイプでは、子の更新日の最大を親の更新日にするかを決める。
 * 単体テンプレートに、公開日と更新日のブロックを置く。
 
@@ -41,6 +42,7 @@ kis-core は本機能の本体にしません。KIS のサイトは、本プラ�
 * メディアライブラリ一覧への更新日の列。日付の書き換えは [S2J Media Library Date Corrector](https://github.com/stein2nd/s2j-media-library-date-corrector) の仕事です。本プラグインは、保存済みの公開日と更新日を読むだけです。
 * ピン留め一覧。非ピン集合の更新日ソートは、S2J Query Pinned 側が本プラグインの結果を受け取ります。本プラグインは Query Pinned を呼びません。
 * サイトポリシーの「最終確認日」。方針を見直した日は S2J Site Policy Manager が持ち、投稿の更新日とは別です。
+* `post_parent` 以外で結ばれた親子の集約。投稿メタや関連フィールドで結ぶ組は、子として集めません。
 
 ## サービスとの境界
 
@@ -66,21 +68,27 @@ kis-core は本機能の本体にしません。KIS のサイトは、本プラ�
 | 単体で更新日を出す | on/off |
 | Archive に更新日の絞り込みとソートを足す | on/off。`has_archive` がないタイプは、チェックを置かず無効 |
 | 子の更新日を集約 | on/off と、子のコンテンツタイプを1つ |
+| Query Loop に更新日ソートを出す | on/off。`page` と `attachment` も有効。Archive 列が無効でも置く |
 
-行に出すタイプは、`page`、`post`、`public` または `show_ui` の CPT、`attachment` です。`revision`、`nav_menu_item`、`wp_template`、`wp_block` などの内部タイプは出しません。
+表の上に、「Query Loop に更新日ソートを出す」を置きます。選択肢は「出さない」と「すべてのタイプで出す」です。保存先はオプション `s2j_content_dates_query_loop` で、値は `off` または `all` です。キーがない間は `off` です。
+
+行に出すタイプは、`page`、`post`、`public` または `show_ui` の CPT、`attachment` です。`show_ui` だけで `public` ではない CPT も出します。管理画面に一覧があるタイプです。`revision`、`nav_menu_item`、`wp_template`、`wp_block` などの内部タイプは出しません。
 
 `page` と `attachment` の Archive 列は無効です。固定記事に Archive はなく、メディアライブラリの一覧は初版で変えません。
 
 保存先はオプション `s2j_content_dates_types` です。タイプ登録名をキーにし、値は次の形です。
 
-```text
-show_single     true | false | キーなし
-show_archive    true | false | キーなし
-aggregate       true | false | キーなし
-child_type      登録名、または空
-```
+| タイプ登録名 | 値 |
+| --- | --- |
+| show_single | true / false / キーなし |
+| show_archive | true / false / キーなし |
+| aggregate | true / false / キーなし |
+| child_type | 登録名、または空 |
+| query_loop | true / false / キーなし |
 
-新規タイプのデフォルトは off です。キーがない (`null`) 間は off として読みます。タイプが登録された瞬間には書きません。利用者がその行のチェックを変えたときだけ、on または off をそのタイプのキーに保存します。他のタイプの未保存は、そのまま残します。
+新規タイプのデフォルトは off です。`query_loop` 以外は、キーがない (`null`) 間は off として読みます。タイプが登録された瞬間には書きません。利用者がその行のチェックを変えたときだけ、on または off をそのタイプのキーに保存します。他のタイプの未保存は、そのまま残します。
+
+`query_loop` は、サイトの値と合わせて読みます。サイトが `off` のとき、`true` のタイプにだけコントロールを出します。キーなしと `false` は出しません。サイトが `all` のとき、キーなしと `true` のタイプに出します。`false` のタイプには出しません。`all` の間に登録されたタイプは、除外するまで出ます。
 
 登録が消えたタイプのキーは残します。同じ登録名が戻ったとき、以前の on/off を読みます。
 
@@ -101,9 +109,15 @@ Archive 列が on のタイプだけ、メインクエリーが次を受けま�
 
 Archive 列が off のタイプでは、この2つのクエリー変数を無視します。
 
+## Query Loop
+
+Query Loop ブロックの並びの選択肢に「更新日」を足すかは、上のサイトの値と、そのブロックの対象タイプの `query_loop` で決めます。足すとき、選ばれた並びは Archive と同じく、サービスのソートキーです。集約が on の親は、集約後の更新日をキーにします。ブロックを置いたときの初期の並びは変えません。
+
+Archive 列が off のタイプでも、`query_loop` が出す側なら、このコントロールは出します。
+
 ## 親への集約
 
-集約が on で、子タイプが1つ指定されているときだけ行います。子は、その親投稿を `post_parent` に持つ、指定タイプの投稿です。KIS の `product` と `product_section` は、この指定の一例です。API の対象は、その組に限りません。
+集約が on で、子タイプが1つ指定されているときだけ行います。子は、その親投稿を `post_parent` に持つ、指定タイプの投稿です。KIS の `product` と `product_section` は、この指定の一例です。API の対象は、その組に限りません。投稿メタや関連フィールドで結ばれた組は、子として集めません。
 
 子が0件のときは、親自身の更新日のままです。子タイプの登録が消えているときは、集約をせず、設定画面のその行に登録がない旨を出します。
 
@@ -123,9 +137,9 @@ Archive 列が off のタイプでは、この2つのクエリー変数を無視
 | 内側はビジネスルール | 表示可否、ソートキー、集約はサービス |
 | 外側は詳細 | オプション、ブロック、Archive |
 
-Composer で `s2j/content-dates-service` を require します。パッケージの参照元 (`VCS` か `path` か) は実装時に決めます。
+Composer で `s2j/content-dates-service` を require します。参照は [S2J Slug Generater](https://github.com/stein2nd/s2j-slug-generater) が [`s2j/similarity-service`](https://packagist.org/packages/s2j/similarity-service) を Packagist の名前だけで require するのと同じです。`repositories` に `VCS` も `path` も書きません。
 
-アンインストールではオプション `s2j_content_dates_types` を消します。投稿の日付は変えません。
+アンインストールではオプション `s2j_content_dates_types` と `s2j_content_dates_query_loop` を消します。投稿の日付は変えません。
 
 ## 関連リポジトリ
 
@@ -144,8 +158,9 @@ Composer で `s2j/content-dates-service` を require します。パッケージ
 2. 設定テーブルとオプション。未保存は off のまま、変えた行だけ保存する。
 3. ブロックと `s2j_content_dates_render()`。
 4. Archive の `orderby=modified` と `modified_after`。
-5. `post_parent` による子の集約。
-6. 添付ファイルページ。メディアライブラリの列は、その後に別ドラフトで扱う。
+5. Query Loop の更新日ソート。サイトの初期値は出さない。`all` と、タイプの `query_loop` で出し分ける。
+6. `post_parent` による子の集約。
+7. 添付ファイルページ。メディアライブラリの列は、その後に別ドラフトで扱う。
 
 ## 本ドラフトの提案
 
@@ -155,18 +170,17 @@ Composer で `s2j/content-dates-service` を require します。パッケージ
 * 設定キーは `s2j_content_dates_types`。変えたタイプだけを書く。
 * 単体の出力はブロック `s2j/content-dates`。更新日が off のタイプでは公開日だけを出す。
 * Archive のデフォルトの並びは変えない。`orderby=modified` と `modified_after` を、on のタイプだけが受ける。
-* 子は `post_parent` で結ぶ。親の行で子タイプを1つ指定する。
+* Query Loop の更新日ソートは、初期値では出さない。`s2j_content_dates_query_loop` が `all` のときは、`query_loop` が `false` のタイプを除いて出す。`off` のときは、`query_loop` が `true` のタイプだけに出す。
+* 子は `post_parent` で結ぶ。親の行で子タイプを1つ指定する。投稿メタや関連フィールドで結ぶ組は集約しない。
 * メディアライブラリの一覧は初版で変えない。
-
-## 未決事項
-
-* `s2j/content-dates-service` を Composer にどう参照するか。
-* `show_ui` だけで `public` ではない CPT を、表に出すか。本ドラフトでは出す。
-* 親子が `post_parent` でない組を、初版のあとで足すか。
-* Query Loop ブロックへ、更新日ソートのコントロールを出すか。初版はクエリー変数だけにする。
+* 表の行は、`page`、`post`、`public` または `show_ui` の CPT、`attachment` です。`show_ui` だけで `public` ではない CPT も出します。
 
 ## 改訂履歴
 
 | 日付 | 内容 |
 | --- | --- |
 | 2026-10-04 | 初版ドラフト。コンテンツタイプ表、未保存は off、ブロック、Archive のクエリー変数、`post_parent` の集約、を記録 |
+| 2026-10-05 | Composer の参照を、S2J Slug Generater と同じく Packagist のパッケージ名だけにする、と記録 |
+| 2026-10-05 | Query Loop の更新日ソートは、初期値では出さない。すべてのタイプで出す指定と、タイプごとの除外を記録 |
+| 2026-10-05 | 集約する子は `post_parent` を持つ投稿だけにする。投稿メタや関連フィールドで結ぶ組は集めない、と記録 |
+| 2026-10-05 | `show_ui` だけで `public` ではない CPT も、設定の表に出す、と記録 |
