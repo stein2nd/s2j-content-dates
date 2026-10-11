@@ -2,6 +2,13 @@
 
 ## unreleased
 
+## 0.0.1 - 2026-10-11
+
+### Changed
+
+* 開発依存の `@wordpress/*`、`vite` ^8.3.4、`rollup` ^4.64.5、`@typescript-eslint/*` ^8.71.1、`@types/node` ^26.6.5を更新
+* 開発依存の `braces` v3.0.3 (GHSA-vfj7-8cjw-p6xm) は修正版が未公開のため、深刻度 high の指摘7件 (CVE-2026-93687) は残す。`@s2j/docs-linter` 経由の深刻度 moderate の指摘10件も修正版待ちのため残す
+
 ## 0.0.1 - 2026-10-10
 
 ### Changed
