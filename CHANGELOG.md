@@ -2,6 +2,19 @@
 
 ## unreleased
 
+## 0.0.1 - 2026-10-15
+
+### Changed
+
+* 開発依存の `@s2j/docs-linter` を ^1.0.29、`@typescript-eslint/*` を ^8.71.2、`rollup` を ^4.64.7、`react` / `react-dom` を ^19.3.1に更新
+
+## 0.0.1 - 2026-10-12
+
+### Added
+
+* GitHub Actions に配布 zip ビルド (`dist-zip.yml`) と PHPUnit (`phpunit.yml`) を追加
+* 配布 zip 作成スクリプト `tools/dist/make-dist-zip.mjs` を追加
+
 ## 0.0.1 - 2026-10-11
 
 ### Changed
