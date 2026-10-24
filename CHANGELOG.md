@@ -4,6 +4,10 @@
 
 ## 0.0.1 - 2026-10-24
 
+### Fixed
+
+* GitHub Actions「PHPUnit」が `phpunit:wp-env` 未定義で失敗する問題 — `npm run phpunit:wp-env` を追加し、WordPress 未起動のユニット PHPUnit (`phpunit.unit.xml.dist`) を CI で実行する。
+
 ### Added
 
 * `composer.json` と `composer.lock` を追加し、PHPUnit、PHPStan、PHPCS、WPCS 向けの開発依存と lint スクリプトを置いた。`phpcs.xml.dist`、`phpcs.wpcs.xml.dist`、`phpstan.neon.dist`、`.env.tests.example` を同梱した。

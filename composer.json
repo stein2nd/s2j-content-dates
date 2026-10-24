@@ -15,7 +15,8 @@
 		"php-stubs/wordpress-stubs": "^6.8"
 	},
 	"scripts": {
-		"test": "phpunit",
+		"test:unit": "@php vendor/bin/phpunit -c phpunit.unit.xml.dist",
+		"test": "@test:unit",
 		"phpstan": "@php vendor/bin/phpstan analyse -c phpstan.neon.dist --memory-limit=512M",
 		"phpcs": "@php vendor/bin/phpcs -p",
 		"phpcs:wpcs": "@php vendor/bin/phpcs -p --standard=phpcs.wpcs.xml.dist",
