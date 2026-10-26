@@ -2,6 +2,21 @@
 
 ## unreleased
 
+## 0.0.1 - 2026-10-26
+
+### Added
+
+* プラグイン PHP の骨子 (`s2j-content-dates.php`、`includes/Plugin.php`、`uninstall.php`) と `vite.config.ts` のプレースホルダーを追加。
+
+### Fixed
+
+* `npm run lint:php` が PHPStan「No files found to analyse」で失敗する問題 — `includes/` に解析対象を置き、`phpstan.neon.dist` を更新した。
+
+### Changed
+
+* `phpcs.xml.dist` と `phpcs.wpcs.xml.dist` を、他 S2J プラグイン同型の PHPCS 設定に合わせた。
+* `makejson` のデフォルトを purge ありにし、孤児 JED を残す `makejson:keep` (`--no-purge`) を追加した。
+
 ## 0.0.1 - 2026-10-24
 
 ### Fixed
