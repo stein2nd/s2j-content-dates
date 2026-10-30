@@ -2,6 +2,13 @@
 
 ## unreleased
 
+## 0.0.1 - 2026-10-30
+
+### Changed
+
+* 開発依存の `@s2j/docs-linter` を ^1.0.31、`rollup` を ^4.66.0、`sass` を ^1.107.0、`@typescript-eslint/*` を ^8.72.1、`@types/node` を ^26.6.6、`autoprefixer` を ^10.6.2に更新。
+* `composer.lock` を Composer の lock メタデータ形式に合わせて更新。
+
 ## 0.0.1 - 2026-10-26
 
 ### Added
